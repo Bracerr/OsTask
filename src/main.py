@@ -18,13 +18,15 @@ def generate_tau_sequence(rho_1):
     tau_sequence = np.zeros(num_steps)
     
     # Начальные значения xi1_prev_sq и xi2_prev_sq
-    xi1_prev_sq = sigma_0_sq * (np.sqrt(1 - rho_1) * generate_normal()[0])**2
-    xi2_prev_sq = sigma_0_sq * (np.sqrt(1 - rho_1) * generate_normal()[1])**2
+    X1_prev, X2_prev = generate_normal()
+    xi1_prev_sq = sigma_0_sq * (np.sqrt(1 - rho_1) * X1_prev)**2
+    xi2_prev_sq = sigma_0_sq * (np.sqrt(1 - rho_1) * X2_prev)**2
     
     for n in range(num_steps):
         # Моделирование xi1_sq и xi2_sq
-        xi1_sq = sigma_0_sq * ((np.sqrt(1 - rho_1) * generate_normal()[0]) + np.sqrt(rho_1) * np.sqrt(xi1_prev_sq))**2
-        xi2_sq = sigma_0_sq * ((np.sqrt(1 - rho_1) * generate_normal()[1]) + np.sqrt(rho_1) * np.sqrt(xi2_prev_sq))**2
+        X1, X2 = generate_normal()
+        xi1_sq = sigma_0_sq * ((np.sqrt(1 - rho_1) * X1) + np.sqrt(rho_1) * np.sqrt(xi1_prev_sq))**2
+        xi2_sq = sigma_0_sq * ((np.sqrt(1 - rho_1) * X2) + np.sqrt(rho_1) * np.sqrt(xi2_prev_sq))**2
         
         # Вычисление tau(n)
         tau_sequence[n] = xi1_sq + xi2_sq
