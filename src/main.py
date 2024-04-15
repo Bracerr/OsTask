@@ -1,54 +1,62 @@
 import numpy as np
-from scipy.stats import pearsonr
 import matplotlib.pyplot as plt
 
 # Параметры моделирования
 sigma_0_sq = 0.25
-rho_1_values = [0.5, 0.55, 0.6, 0.65 , 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
-num_steps = 100000
+rhos = [0.7] + list(np.arange(0.5, 1.0, 0.05))
+n_steps = 100000
 
-def generate_normal():
+# Генерация начальных значений x1(0) и x2(0)
+def generate_initial_values():
     U1 = np.random.rand()
     U2 = np.random.rand()
     X1 = np.sqrt(-2 * np.log(U1)) * np.cos(2 * np.pi * U2)
     X2 = np.sqrt(-2 * np.log(U1)) * np.sin(2 * np.pi * U2)
     return X1, X2
 
-def generate_tau_sequence(rho_1):
-    tau_sequence = np.zeros(num_steps)
+# Генерация последовательности
+def generate_sequence(n_steps, sigma_0_sq, r_sq):
+    x1_prev, x2_prev = generate_initial_values()
+    tau_seq = np.zeros(n_steps)
     
-    # Начальные значения xi1_prev_sq и xi2_prev_sq
-    X1_prev, X2_prev = generate_normal()
-    xi1_prev_sq = sigma_0_sq * (np.sqrt(1 - rho_1) * X1_prev)**2
-    xi2_prev_sq = sigma_0_sq * (np.sqrt(1 - rho_1) * X2_prev)**2
-    
-    for n in range(num_steps):
-        # Моделирование xi1_sq и xi2_sq
-        X1, X2 = generate_normal()
-        xi1_sq = sigma_0_sq * ((np.sqrt(1 - rho_1) * X1) + np.sqrt(rho_1) * np.sqrt(xi1_prev_sq))**2
-        xi2_sq = sigma_0_sq * ((np.sqrt(1 - rho_1) * X2) + np.sqrt(rho_1) * np.sqrt(xi2_prev_sq))**2
+    for n in range(n_steps):
+        x1 = np.sqrt(1 - r_sq) * np.random.randn() + r_sq * x1_prev
+        x2 = np.sqrt(1 - r_sq) * np.random.randn() + r_sq * x2_prev
         
-        # Вычисление tau(n)
-        tau_sequence[n] = xi1_sq + xi2_sq
+        xi1_sq = sigma_0_sq * (np.sqrt(1 - r_sq) * x1 + r_sq * x1_prev)**2
+        xi2_sq = sigma_0_sq * (np.sqrt(1 - r_sq) * x2 + r_sq * x2_prev)**2
         
-        # Обновление значений для следующего шага
-        xi1_prev_sq = xi1_sq
-        xi2_prev_sq = xi2_sq
+        tau_seq[n] = xi1_sq + xi2_sq
+        
+        x1_prev, x2_prev = x1, x2
     
-    return tau_sequence
+    return tau_seq
 
-# Моделирование и вычисление корреляций
-for rho_1 in rho_1_values:
-    tau_sequence = generate_tau_sequence(rho_1)
-    
-    # Вычисление коэффициента корреляции
-    corr_coef, _ = pearsonr(tau_sequence[:-1], tau_sequence[1:])
-    print(f"Экспериментальный коэффициент корреляции для rho_1 = {rho_1}: {corr_coef}")
-    
-    # Визуализация последовательности
-    plt.figure(figsize=(10, 4))
-    plt.plot(tau_sequence[:1000])  # Показываем первые 1000 отсчетов для наглядности
-    plt.title(f"Последовательность tau(n) для rho_1 = {rho_1}")
-    plt.xlabel("n")
-    plt.ylabel("tau(n)")
-    plt.show()
+# Вычисление коэффициента корреляции
+def calculate_correlation(seq):
+    return np.corrcoef(seq[:-1], seq[1:])[0, 1]
+
+# Моделирование и вычисление коэффициента корреляции для rho_1 = 0.7
+r_sq = rhos[0]
+tau_seq = generate_sequence(n_steps, sigma_0_sq, r_sq)
+correlation = calculate_correlation(tau_seq)
+print(f"Коэффициент корреляции для rho_1 = {r_sq}: {correlation}")
+
+# Моделирование и вычисление коэффициента корреляции для остальных значений rho_1
+correlations = []
+
+for rho in rhos[1:]:
+    r_sq = rho
+    tau_seq = generate_sequence(n_steps, sigma_0_sq, r_sq)
+    correlation = calculate_correlation(tau_seq)
+    print(f"Коэффициент корреляции для rho_1 = {rho}: {correlation}")
+    correlations.append(correlation)
+
+# # Визуализация зависимости коэффициента корреляции от rho
+# plt.figure(figsize=(12, 6))
+# plt.plot(rhos[1:], correlations, marker='o')
+# plt.title('Correlation Coefficient vs rho')
+# plt.xlabel('rho')
+# plt.ylabel('Correlation Coefficient')
+# plt.grid(True)
+# plt.show()
