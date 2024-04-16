@@ -49,7 +49,7 @@ for rho in rhos[1:]:
     r_sq = rho
     tau_seq = generate_sequence(n_steps, sigma_0_sq, r_sq)
     correlation = calculate_correlation(tau_seq)
-    print(f"Коэффициент корреляции для rho_1 = {rho}: {correlation}")
+    print(f"Коэффициент корреляции для rho_1 = {rho:.2f}: {correlation}")
     correlations.append(correlation)
 
 # # Визуализация зависимости коэффициента корреляции от rho
