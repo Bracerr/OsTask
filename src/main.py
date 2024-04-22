@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Параметры моделирования
-sigma_0_sq = 0.25
+sigma_0_sq = 1
 rhos = [0.7] + list(np.arange(0.5, 1.0, 0.05))
 n_steps = 100000
 
